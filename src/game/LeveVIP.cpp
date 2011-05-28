@@ -137,7 +137,6 @@ bool ChatHandler::HandleVipResetTalentsCommand(char* /*args*/)
 
     // Reset Talents
     m_session->GetPlayer()->resetTalents(true);
-    m_session->GetPlayer()->SendTalentsInfoData(false);
 
     PSendSysMessage(LANG_RESET_TALENTS_ONLINE, GetNameLink(m_session->GetPlayer()).c_str());
     return true;

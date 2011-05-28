@@ -455,7 +455,7 @@ void WorldSession::HandleMailTakeItem(WorldPacket & recv_data )
 
             uint32 sender_accId = 0;
 
-            if( GetSecurity() > SEC_PLAYER && sWorld.getConfig(CONFIG_BOOL_GM_LOG_TRADE) )
+            if( GetSecurity() > SEC_VIP && sWorld.getConfig(CONFIG_BOOL_GM_LOG_TRADE) )
             {
                 std::string sender_name;
                 if(sender)
