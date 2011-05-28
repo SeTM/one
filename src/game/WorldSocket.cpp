@@ -635,6 +635,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     uint8 expansion = 0;
     LocaleConstant locale;
     std::string account;
+    bool isPremium = false;
     Sha1Hash sha1;
     BigNumber v, s, g, N, K;
     WorldPacket packet, SendAddonPacked;
@@ -737,6 +738,11 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     security = fields[1].GetUInt16 ();
     if(security > SEC_ADMINISTRATOR)                        // prevent invalid security settings in DB
         security = SEC_ADMINISTRATOR;
+        
+    // Check Premium Account
+    uint32 premlvl = sWorld.getConfig (CONFIG_UINT32_PREMIUM_GMLEVEL); //Select VIP level
+    if (premlvl <= security && sWorld.getConfig(CONFIG_BOOL_PREMIUM_ENABLE)) // check for premium acc and system enable
+        isPremium = true; 
 
     K.SetHexStr (fields[2].GetString ());
 
@@ -819,7 +825,7 @@ int WorldSocket::HandleAuthSession (WorldPacket& recvPacket)
     stmt.PExecute(address.c_str(), account.c_str());
 
     // NOTE ATM the socket is single-threaded, have this in mind ...
-    ACE_NEW_RETURN (m_Session, WorldSession (id, this, AccountTypes(security), expansion, mutetime, locale), -1);
+    ACE_NEW_RETURN (m_Session, WorldSession (id, this, AccountTypes(security), isPremium, expansion, mutetime, locale), -1);
 
     m_Crypt.Init (&K);
 

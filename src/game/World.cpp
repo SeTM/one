@@ -731,6 +731,25 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_TIMERBAR_FIRE_MAX,        "TimerBar.Fire.Max", 1);
 
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
+    
+    //Premium Accounts
+    setConfig(CONFIG_BOOL_PREMIUM_ENABLE,                       "Premuim.Account.Enable", true);
+    setConfigPos(CONFIG_UINT32_PREMIUM_GMLEVEL,                 "Premuim.Account.GmLevel", 1);
+    setConfig(CONFIG_FLOAT_RATE_XP_PREMIUM_KILL,                "Premium.Rate.XP.Kill", 1.0f);
+    setConfig(CONFIG_FLOAT_RATE_XP_PREMIUM_QUEST,               "Premium.Rate.XP.Quest", 1.0f);
+    setConfig(CONFIG_FLOAT_RATE_XP_PREMIUM_EXPLORE,             "Premium.Rate.XP.Explore", 1.0f);
+    setConfig(CONFIG_FLOAT_RATE_PREMIUM_REPUTATION_GAIN,        "Premium.Rate.Reputation.Gain", 1.0f);
+    setConfig(CONFIG_FLOAT_RATE_PREMIUM_HONOR,                  "Premium.Rate.Honor", 1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_PREMIUM_DROP_MONEY,          "Premium.Rate.Drop.Money", 1.0f);
+    setConfig(CONFIG_UINT32_SKILL_PREMIUM_GAIN_WEAPON,          "Premium.SkillGain.Weapon", 1);
+    setConfigPos(CONFIG_UINT32_SKILL_PREMIUM_GAIN_DEFENSE,      "Premium.SkillGain.Defense", 1);
+    setConfigPos(CONFIG_UINT32_SKILL_PREMIUM_GAIN_CRAFTING,     "Premium.SkillGain.Crafting", 1);
+    setConfigPos(CONFIG_UINT32_SKILL_PREMIUM_GAIN_GATHERING,    "Premium.SkillGain.Gathering", 1);
+    
+    //Mute system
+    setConfig(CONFIG_BOOL_ALLOW_CHANNEL,                        "LFG.Restricted.Enable", false);
+    setConfigPos(CONFIG_UINT32_ALLOW_CHANNEL_SECURITY,          "LFG.Restricted.GmLevel", 1);
+    setConfigPos(CONFIG_UINT32_ALLOW_CHANNEL_LEVEL,             "LFG.Restricted.Level", 10);
 
     m_relocation_ai_notify_delay = sConfig.GetIntDefault("Visibility.AIRelocationNotifyDelay", 1000u);
     m_relocation_lower_limit_sq  = pow(sConfig.GetFloatDefault("Visibility.RelocationLowerLimit",10), 2);

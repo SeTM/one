@@ -555,6 +555,18 @@ class ChatHandler
 
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
+        
+        //VIP commands
+        bool HandleVipDebuffCommand(char* args);
+        bool HandleVipMapCommand(char* args);
+        bool HandleVipBankCommand(char* args);
+        bool HandleVipRepairCommand(char* args);
+        bool HandleVipAuctionCommand(char* args);
+        bool HandleVipResetTalentsCommand(char* args);
+        bool HandleVipWhispersCommand(char* args);
+        bool HandleVipTaxiCommand(char* args);
+        bool HandleVipHomeCommand(char* args);
+        bool HandleVipCapitalCommand(char* args);
 
         Player*   getSelectedPlayer();
         Creature* getSelectedCreature();

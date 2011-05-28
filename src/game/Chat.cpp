@@ -634,6 +634,22 @@ ChatCommand * ChatHandler::getCommandTable()
         { "import",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleWpImportCommand,            "", NULL },
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
+    
+    static ChatCommand vipCommandTable[] =
+    {
+        { "debuff",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipDebuffCommand,           "", NULL },
+        { "map",            SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipMapCommand,              "", NULL },
+        { "bank",           SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipBankCommand,             "", NULL },
+        { "repair",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipRepairCommand,           "", NULL },
+        { "auction",        SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipAuctionCommand,          "", NULL },
+        { "resettalents",   SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipResetTalentsCommand,     "", NULL },
+        { "whispers",       SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipWhispersCommand,         "", NULL },
+        { "taxi",           SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipTaxiCommand,             "", NULL },
+        { "home",           SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipHomeCommand,             "", NULL },
+        { "capital",        SEC_ADMINISTRATOR,  false, &ChatHandler::HandleVipCapitalCommand,          "", NULL },
+        
+        { NULL,             0,                  false, NULL,                                           "", NULL }
+    };
 
     static ChatCommand commandTable[] =
     {
@@ -725,6 +741,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "stable",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleStableCommand,              "", NULL },
         { "waterwalk",      SEC_GAMEMASTER,     false, &ChatHandler::HandleWaterwalkCommand,           "", NULL },
         { "quit",           SEC_CONSOLE,        true,  &ChatHandler::HandleQuitCommand,                "", NULL },
+        { "vip",            SEC_ADMINISTRATOR,     true, NULL,                                           "", vipCommandTable },
 
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
@@ -1130,7 +1147,7 @@ void ChatHandler::ExecuteCommand(const char* text)
             SetSentErrorMessage(false);
             if ((this->*(command->Handler))((char*)text))   // text content destroyed at call
             {
-                if (command->SecurityLevel > SEC_PLAYER)
+                if (command->SecurityLevel > SEC_VIP)
                 {
                     // chat case
                     if (m_session)
