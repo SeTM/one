@@ -45,17 +45,6 @@ enum SpellCategories
     SPELLCATEGORY_DEVOUR_MAGIC        = 12
 };
 
-//Some SpellFamilyFlags
-#define SPELLFAMILYFLAG_ROGUE_VANISH            UI64LIT(0x0000000000000800)
-#define SPELLFAMILYFLAG_ROGUE_STEALTH           UI64LIT(0x0000000000400000)
-#define SPELLFAMILYFLAG_ROGUE_BACKSTAB          UI64LIT(0x0000000000800004)
-#define SPELLFAMILYFLAG_ROGUE_SAP               UI64LIT(0x0000000000000080)
-#define SPELLFAMILYFLAG_ROGUE_FEINT             UI64LIT(0x0000000008000000)
-#define SPELLFAMILYFLAG_ROGUE_KIDNEYSHOT        UI64LIT(0x0000000000200000)
-#define SPELLFAMILYFLAG_ROGUE__FINISHING_MOVE   UI64LIT(0x00000009003E0000)
-
-#define SPELLFAMILYFLAG_PALADIN_SEALS           UI64LIT(0x000004000A000200)
-
 // Spell clasification
 enum SpellSpecific
 {
@@ -165,8 +154,7 @@ bool IsNoStackAuraDueToAura(uint32 spellId_1, uint32 spellId_2);
 inline bool IsSealSpell(SpellEntry const *spellInfo)
 {
     //Collection of all the seal family flags. No other paladin spell has any of those.
-    return spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN &&
-        ( spellInfo->SpellFamilyFlags & SPELLFAMILYFLAG_PALADIN_SEALS ) &&
+    return spellInfo->IsFitToFamily(SPELLFAMILY_PALADIN, UI64LIT(0x000004000A000200)) &&
         // avoid counting target triggered effect as seal for avoid remove it or seal by it.
         spellInfo->EffectImplicitTargetA[0] == TARGET_SELF;
 }
@@ -195,6 +183,14 @@ inline bool IsPassiveSpellStackableWithRanks(SpellEntry const* spellProto)
     return !IsSpellHaveEffect(spellProto,SPELL_EFFECT_APPLY_AURA);
 }
 
+inline bool IsSpellRemoveAllMovementAndControlLossEffects(SpellEntry const* spellProto)
+{
+    return spellProto->EffectApplyAuraName[EFFECT_INDEX_0] == SPELL_AURA_MECHANIC_IMMUNITY &&
+        spellProto->EffectMiscValue[EFFECT_INDEX_0] == 1 &&
+        spellProto->EffectApplyAuraName[EFFECT_INDEX_1] == 0 &&
+        spellProto->EffectApplyAuraName[EFFECT_INDEX_2] == 0 &&
+        (spellProto->AttributesEx & SPELL_ATTR_EX_DISPEL_AURAS_ON_IMMUNITY);
+}
 
 inline bool IsDeathOnlySpell(SpellEntry const *spellInfo)
 {
@@ -583,7 +579,7 @@ struct SpellProcEventEntry
 {
     uint32      schoolMask;
     uint32      spellFamilyName;                            // if nonzero - for matching proc condition based on candidate spell's SpellFamilyNamer value
-    uint64      spellFamilyMask[MAX_EFFECT_INDEX];          // if nonzero - for matching proc condition based on candidate spell's SpellFamilyFlags  (like auras 107 and 108 do)
+    ClassFamilyMask spellFamilyMask[MAX_EFFECT_INDEX];      // if nonzero - for matching proc condition based on candidate spell's SpellFamilyFlags  (like auras 107 and 108 do)
     uint32      procFlags;                                  // bitmask for matching proc event
     uint32      procEx;                                     // proc Extend info (see ProcFlagsEx)
     float       ppmRate;                                    // for melee (ranged?) damage spells - proc rate per minute. if zero, falls back to flat chance from Spell.dbc
@@ -766,6 +762,9 @@ typedef std::pair<SpellLearnSpellMap::const_iterator,SpellLearnSpellMap::const_i
 typedef std::multimap<uint32, SkillLineAbilityEntry const*> SkillLineAbilityMap;
 typedef std::pair<SkillLineAbilityMap::const_iterator,SkillLineAbilityMap::const_iterator> SkillLineAbilityMapBounds;
 
+typedef std::multimap<uint32, SkillRaceClassInfoEntry const*> SkillRaceClassInfoMap;
+typedef std::pair<SkillRaceClassInfoMap::const_iterator,SkillRaceClassInfoMap::const_iterator> SkillRaceClassInfoMapBounds;
+
 inline bool IsPrimaryProfessionSkill(uint32 skill)
 {
     SkillLineEntry const *pSkill = sSkillLineStore.LookupEntry(skill);
@@ -802,14 +801,14 @@ class SpellMgr
     // Accessors (const or static functions)
     public:
         // Spell affects
-        uint64 GetSpellAffectMask(uint32 spellId, SpellEffectIndex effectId) const
+        ClassFamilyMask GetSpellAffectMask(uint32 spellId, SpellEffectIndex effectId) const
         {
             SpellAffectMap::const_iterator itr = mSpellAffectMap.find((spellId<<8) + effectId);
             if (itr != mSpellAffectMap.end())
-                return itr->second;
+                return ClassFamilyMask(itr->second);
             if (SpellEntry const* spellEntry=sSpellStore.LookupEntry(spellId))
-                return spellEntry->EffectItemType[effectId];
-            return 0;
+                return ClassFamilyMask(spellEntry->EffectItemType[effectId]);
+            return ClassFamilyMask();
         }
 
         SpellElixirMap const& GetSpellElixirMap() const { return mSpellElixirs; }
@@ -1027,6 +1026,11 @@ class SpellMgr
             return mSkillLineAbilityMap.equal_range(spell_id);
         }
 
+        SkillRaceClassInfoMapBounds GetSkillRaceClassInfoMapBounds(uint32 skill_id) const
+        {
+            return mSkillRaceClassInfoMap.equal_range(skill_id);
+        }
+
         PetAura const* GetPetAura(uint32 spell_id)
         {
             SpellPetAuraMap::const_iterator itr = mSpellPetAuraMap.find(spell_id);
@@ -1085,6 +1089,7 @@ class SpellMgr
         void LoadSpellTargetPositions();
         void LoadSpellThreats();
         void LoadSkillLineAbilityMap();
+        void LoadSkillRaceClassInfoMap();
         void LoadSpellPetAuras();
         void LoadSpellAreas();
 
@@ -1102,6 +1107,7 @@ class SpellMgr
         SpellProcItemEnchantMap mSpellProcItemEnchantMap;
         SpellBonusMap      mSpellBonusMap;
         SkillLineAbilityMap mSkillLineAbilityMap;
+        SkillRaceClassInfoMap mSkillRaceClassInfoMap;
         SpellPetAuraMap     mSpellPetAuraMap;
         SpellAreaMap         mSpellAreaMap;
         SpellAreaForQuestMap mSpellAreaForQuestMap;

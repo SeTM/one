@@ -637,17 +637,17 @@ struct RandomPropertiesPointsEntry
     uint32    displayOrder;                                 // 19       m_sortIndex
 };*/
 
-/*struct SkillRaceClassInfoEntry
+struct SkillRaceClassInfoEntry
 {
-    uint32    id;                                           // 0        m_ID
+    //uint32    id;                                         // 0        m_ID
     uint32    skillId;                                      // 1        m_skillID
     uint32    raceMask;                                     // 2        m_raceMask
     uint32    classMask;                                    // 3        m_classMask
     uint32    flags;                                        // 4        m_flags
     uint32    reqLevel;                                     // 5        m_minLevel
-    uint32    skillTierId;                                  // 6        m_skillTierID
-    uint32    skillCostID;                                  // 7        m_skillCostIndex
-};*/
+    //uint32    skillTierId;                                // 6        m_skillTierID
+    //uint32    skillCostID;                                // 7        m_skillCostIndex
+};
 
 /*struct SkillTiersEntry{
     uint32    id;                                           // 0        m_ID
@@ -698,6 +698,40 @@ struct SoundEntriesEntry
                                                             // 26       m_minDistance
                                                             // 27       m_distanceCutoff
                                                             // 28       m_EAXDef
+};
+
+
+struct ClassFamilyMask
+{
+    uint64 Flags;
+
+    ClassFamilyMask() : Flags(0) {}
+    explicit ClassFamilyMask(uint64 familyFlags) : Flags(familyFlags) {}
+
+    bool Empty() const { return Flags == 0; }
+    bool operator! () const { return Empty(); }
+    operator void const* () const { return Empty() ? NULL : this; }// for allow normal use in if(mask)
+
+    bool IsFitToFamilyMask(uint64 familyFlags) const
+    {
+        return Flags & familyFlags;
+    }
+
+    bool IsFitToFamilyMask(ClassFamilyMask const& mask) const
+    {
+        return Flags & mask.Flags;
+    }
+
+    uint64 operator& (uint64 mask) const                     // possible will removed at finish convertion code use IsFitToFamilyMask
+    {
+        return Flags & mask;
+    }
+
+    ClassFamilyMask& operator|= (ClassFamilyMask const& mask)
+    {
+        Flags |= mask.Flags;
+        return *this;
+    }
 };
 
 #define MAX_SPELL_REAGENTS 8
@@ -793,7 +827,7 @@ struct SpellEntry
     uint32    StartRecoveryTime;                            // 197      m_startRecoveryTime
     uint32    MaxTargetLevel;                               // 198      m_maxTargetLevel
     uint32    SpellFamilyName;                              // 199      m_spellClassSet
-    uint64    SpellFamilyFlags;                             // 200-201  m_spellClassMask
+    ClassFamilyMask SpellFamilyFlags;                       // 200-201  m_spellClassMask
     uint32    MaxAffectedTargets;                           // 202      m_maxTargets
     uint32    DmgClass;                                     // 203      m_defenseType
     uint32    PreventionType;                               // 204      m_preventionType
@@ -811,12 +845,22 @@ struct SpellEntry
 
     bool IsFitToFamilyMask(uint64 familyFlags) const
     {
-        return SpellFamilyFlags & familyFlags;
+        return SpellFamilyFlags.IsFitToFamilyMask(familyFlags);
     }
 
     bool IsFitToFamily(SpellFamily family, uint64 familyFlags) const
     {
         return SpellFamily(SpellFamilyName) == family && IsFitToFamilyMask(familyFlags);
+    }
+
+    bool IsFitToFamilyMask(ClassFamilyMask const& mask) const
+    {
+        return SpellFamilyFlags.IsFitToFamilyMask(mask);
+    }
+
+    bool IsFitToFamily(SpellFamily family, ClassFamilyMask const& mask) const
+    {
+        return SpellFamily(SpellFamilyName) == family && IsFitToFamilyMask(mask);
     }
 
     private:
