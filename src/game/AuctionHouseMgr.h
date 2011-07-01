@@ -98,6 +98,10 @@ class AuctionHouseObject
 
         AuctionEntryMap *GetAuctions() { return &AuctionsMap; }
 
+        // Added by AHBot
+        AuctionEntryMap::iterator GetAuctionsBegin() {return AuctionsMap.begin();}
+        AuctionEntryMap::iterator GetAuctionsEnd() {return AuctionsMap.end();}
+
         void AddAuction(AuctionEntry *ah)
         {
             MANGOS_ASSERT( ah );

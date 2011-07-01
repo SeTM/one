@@ -29,6 +29,12 @@
 #include "Log.h"
 #include "ObjectGuid.h"
 #include "ObjectMgr.h"
+#include "Player.h"
+#include "UpdateMask.h"
+#include "Unit.h"
+#include "Language.h"
+#include "AuctionHouseBot/AuctionHouseBot.h"
+#include "DBCStores.h"
 #include "Item.h"
 #include "Player.h"
 #include "World.h"
@@ -257,7 +263,10 @@ void MailDraft::SendReturnToSender(uint32 sender_acc, ObjectGuid sender_guid, Ob
     uint32 deliver_delay = needItemDelay ? sWorld.getConfig(CONFIG_UINT32_MAIL_DELIVERY_DELAY) : 0;
 
     // will delete item or place to receiver mail list
-    SendMailTo(MailReceiver(receiver,receiver_guid), MailSender(MAIL_NORMAL, sender_guid.GetCounter()), MAIL_CHECK_MASK_RETURNED, deliver_delay);
+    if (sender_guid == auctionbot.GetAHBObjectGuid())
+        SendMailTo(MailReceiver(receiver,receiver_guid), MailSender(MAIL_CREATURE,  sender_guid.GetCounter()), MAIL_CHECK_MASK_RETURNED, deliver_delay);
+    else
+        SendMailTo(MailReceiver(receiver,receiver_guid), MailSender(MAIL_NORMAL, sender_guid.GetCounter()), MAIL_CHECK_MASK_RETURNED, deliver_delay);
 }
 /**
  * Sends a mail.
@@ -272,6 +281,14 @@ void MailDraft::SendMailTo(MailReceiver const& receiver, MailSender const& sende
     Player* pReceiver = receiver.GetPlayer();               // can be NULL
 
     bool has_items = !m_items.empty();
+
+    if (receiver.GetPlayerGuid() == auctionbot.GetAHBObjectGuid())
+    {
+        if (sender.GetMailMessageType() == MAIL_AUCTION && has_items)
+            deleteIncludedItems(true);
+
+        return;
+    }
 
     // generate mail template items for online player, for offline player items will generated at open
     if (pReceiver)
