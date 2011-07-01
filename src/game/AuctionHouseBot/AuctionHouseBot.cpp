@@ -742,7 +742,7 @@ bool AHB_Seller::Initialize()
     results = WorldDatabase.PQuery(npcQuery);
     if (results != NULL)
     {
-        BarGoLink bar((int)results->GetRowCount());
+        BarGoLink bar(results->GetRowCount());
         do
         {
             bar.step();
@@ -772,7 +772,7 @@ bool AHB_Seller::Initialize()
     if (results != NULL)
     {
 
-        BarGoLink bar((int)results->GetRowCount());
+        BarGoLink bar(results->GetRowCount());
         do
         {
             bar.step();
