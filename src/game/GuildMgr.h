@@ -25,11 +25,21 @@
 class Guild;
 class ObjectGuid;
 
+struct GuildHousePosition
+{
+    float  target_X;
+    float  target_Y;
+    float  target_Z;
+    uint32 target_mapId;
+};
+
 class GuildMgr
 {
         typedef UNORDERED_MAP<uint32, Guild*> GuildMap;
+        typedef UNORDERED_MAP<uint32, GuildHousePosition> GuildHousePositionMap;
 
         GuildMap m_GuildMap;
+        GuildHousePositionMap mGuildHousePositions;
     public:
         GuildMgr();
         ~GuildMgr();
@@ -43,8 +53,22 @@ class GuildMgr
         std::string GetGuildNameById(uint32 guildId) const;
 
         void LoadGuilds();
+        void LoadGuildHousePositions();
+
+        GuildHousePosition const* GetGuildHouseCoordById(uint32 guildId) const
+        {
+            GuildHousePositionMap::const_iterator itr = mGuildHousePositions.find(guildId);
+            if (itr != mGuildHousePositions.end())
+                return &itr->second;
+
+            return NULL;
+        }
+        bool AddGuildHouse(uint32 guildId, GuildHousePosition ghp);
+        bool DelGuildHouse(uint32 guildId);
 };
 
 #define sGuildMgr MaNGOS::Singleton<GuildMgr>::Instance()
+
+MANGOS_DLL_SPEC GuildHousePosition const* GetGuildHouseCoorditates(uint32 guildId);
 
 #endif // _GUILDMGR_H

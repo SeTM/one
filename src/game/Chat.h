@@ -240,6 +240,9 @@ class MANGOS_DLL_SPEC ChatHandler
         bool HandleGuildRankCommand(char* args);
         bool HandleGuildDeleteCommand(char* args);
 
+        bool HandleGuildHouseCoordAddCommand(char* args);
+        bool HandleGuildHouseCoordDelCommand(char* args);
+
         bool HandleHonorAddCommand(char* args);
         bool HandleHonorAddKillCommand(char* args);
         bool HandleHonorUpdateCommand(char* args);

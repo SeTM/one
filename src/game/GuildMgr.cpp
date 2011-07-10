@@ -164,3 +164,105 @@ void GuildMgr::LoadGuilds()
     sLog.outString();
     sLog.outString(">> Loaded %u guild definitions", count);
 }
+
+void GuildMgr::LoadGuildHousePositions()
+{
+    m_GuildMap.clear();
+
+    uint32 count = 0;
+
+    //                                                      0       1           2           3           4
+    QueryResult *result = CharacterDatabase.Query("SELECT guildid, position_x, position_y, position_z, map FROM guild_house");
+    if (!result)
+    {
+        BarGoLink bar(1);
+
+        bar.step();
+
+        sLog.outString();
+        sLog.outString(">> Loaded %u guild house destination coordinates", count);
+        return;
+    }
+
+    BarGoLink bar(result->GetRowCount());
+
+    do
+    {
+        Field *fields = result->Fetch();
+
+        bar.step();
+
+        uint32 GuildID = fields[0].GetUInt32();
+
+        GuildHousePosition ght;
+
+        ght.target_X       = fields[1].GetFloat();
+        ght.target_Y       = fields[2].GetFloat();
+        ght.target_Z       = fields[3].GetFloat();
+        ght.target_mapId   = fields[4].GetUInt32();
+
+        MapEntry const* mapEntry = sMapStore.LookupEntry(ght.target_mapId);
+        if (!mapEntry)
+        {
+            sLog.outErrorDb("Guild house (ID:%u) map (ID: %u) does not exist in `Map.dbc`.",GuildID,ght.target_mapId);
+            continue;
+        }
+
+        if (ght.target_X==0 && ght.target_Y==0 && ght.target_Z==0)
+        {
+            sLog.outErrorDb("Guild House (ID:%u) coordinates not provided.",GuildID);
+            continue;
+        }
+
+        Guild* guild = GetGuildById(GuildID);
+        if (!guild)
+        {
+            sLog.outErrorDb("Guild (ID:%u) listed in `guild_house` does not exist.", GuildID);
+            continue;
+        }
+
+        mGuildHousePositions[GuildID] = ght;
+        ++count;
+
+    } while( result->NextRow() );
+
+    delete result;
+
+    sLog.outString();
+    sLog.outString(">> Loaded %u Guild House destination coordinates", count);
+}
+
+MANGOS_DLL_SPEC GuildHousePosition const* GetGuildHouseCoorditates(uint32 guildId)
+{
+    return sGuildMgr.GetGuildHouseCoordById(guildId);
+}
+
+bool GuildMgr::AddGuildHouse(uint32 guildId, GuildHousePosition ghp)
+{
+    if (GetGuildHouseCoordById(guildId))
+        return false;
+
+    mGuildHousePositions[guildId] = ghp;
+
+    return CharacterDatabase.PExecuteLog("INSERT INTO guild_house (guildid, position_x, position_y, position_z, map) VALUES (%u,%f,%f,%f,%u)",
+        guildId, ghp.target_X, ghp.target_Y, ghp.target_Z, ghp.target_mapId);
+}
+
+bool GuildMgr::DelGuildHouse(uint32 guildId)
+{
+    if (!GetGuildHouseCoordById(guildId))
+        return false;
+
+    for(GuildHousePositionMap::iterator itr = mGuildHousePositions.begin(); itr != mGuildHousePositions.end(); ++itr)
+    {
+        if(itr->first == guildId)
+        {
+            CharacterDatabase.PExecuteLog("DELETE FROM guild_house WHERE guildid = %u",guildId);
+            mGuildHousePositions.erase(itr);
+            return true;
+        }
+    }
+
+    return false;
+
+}

@@ -6737,3 +6737,73 @@ bool ChatHandler::HandleModifyGenderCommand(char *args)
 
     return true;
 }
+
+bool ChatHandler::HandleGuildHouseCoordAddCommand(char* args)
+{
+    if(!*args)
+        return false;
+
+    Player *player=m_session->GetPlayer();
+    if (!player)
+        return false;
+
+    char* guildStr = ExtractQuotedArg(&args);
+    if(!guildStr)
+        return false;
+
+    std::string glName = guildStr;
+    Guild* guild = sGuildMgr.GetGuildByName(glName);
+    if (!guild)
+        return false;
+
+    if(sGuildMgr.GetGuildHouseCoordById(guild->GetId()))
+    {
+        SendSysMessage(LANG_COMMAND_TP_ALREADYEXIST);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    GuildHousePosition gh;
+    gh.target_X     = player->GetPositionX();
+    gh.target_Y     = player->GetPositionY();
+    gh.target_Z     = player->GetPositionZ();
+    gh.target_mapId = player->GetMapId();
+
+    if(sGuildMgr.AddGuildHouse(guild->GetId(), gh))
+    {
+        SendSysMessage(LANG_COMMAND_TP_ADDED);
+    }
+    else
+    {
+        SendSysMessage(LANG_COMMAND_TP_ADDEDERR);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    return true;
+}
+
+bool ChatHandler::HandleGuildHouseCoordDelCommand(char* args)
+{
+    if (!*args)
+        return false;
+
+    char* guildStr = ExtractQuotedArg(&args);
+    if(!guildStr)
+        return false;
+
+    std::string glName = guildStr;
+    Guild* guild = sGuildMgr.GetGuildByName(glName);
+    if (!guild)
+        return false;
+
+    if(!sGuildMgr.DelGuildHouse(guild->GetId()))
+    {
+        SendSysMessage(LANG_COMMAND_TELE_NOTFOUND);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    SendSysMessage(LANG_COMMAND_TP_DELETED);
+    return true;
+}

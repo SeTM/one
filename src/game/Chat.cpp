@@ -626,6 +626,13 @@ ChatCommand * ChatHandler::getCommandTable()
         { NULL,             0,                  false, NULL,                                           "", NULL }
     };
 
+    static ChatCommand guildHouseCommandTable[] =
+    {
+        { "add",            SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleGuildHouseCoordAddCommand,   "", NULL },
+        { "delete",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleGuildHouseCoordDelCommand,   "", NULL },
+        { NULL,             0,                  false, NULL,                                           "", NULL }
+    };
+
     static ChatCommand wpCommandTable[] =
     {
         { "show",           SEC_GAMEMASTER,     false, &ChatHandler::HandleWpShowCommand,              "", NULL },
@@ -665,6 +672,7 @@ ChatCommand * ChatHandler::getCommandTable()
         { "go",             SEC_MODERATOR,      false, NULL,                                           "", goCommandTable       },
         { "gobject",        SEC_GAMEMASTER,     false, NULL,                                           "", gobjectCommandTable  },
         { "guild",          SEC_GAMEMASTER,     true,  NULL,                                           "", guildCommandTable    },
+        { "gh",             SEC_ADMINISTRATOR,  true,  NULL,                                           "", guildHouseCommandTable},
         { "instance",       SEC_ADMINISTRATOR,  true,  NULL,                                           "", instanceCommandTable },
         { "learn",          SEC_MODERATOR,      false, NULL,                                           "", learnCommandTable    },
         { "list",           SEC_ADMINISTRATOR,  true,  NULL,                                           "", listCommandTable     },
