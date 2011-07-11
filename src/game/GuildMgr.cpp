@@ -167,7 +167,7 @@ void GuildMgr::LoadGuilds()
 
 void GuildMgr::LoadGuildHousePositions()
 {
-    m_GuildMap.clear();
+    mGuildHousePositions.clear();
 
     uint32 count = 0;
 
